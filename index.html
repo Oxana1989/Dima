@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>🎲 Генератор с объявлением</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    input, textarea {
+      margin: 5px;
+      padding: 8px;
+      width: 300px;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #results, #announcementSection {
+      margin-top: 20px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .result-item {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    .copy-section {
+      margin-top: 10px;
+    }
+    #announcementSection {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎲 Введи два набора бросков кубика (1–6)</h2>
+  <div>
+    <strong>Seed Машинист:</strong><br>
+    <input type="number" id="dice1" min="1" max="6" placeholder="Бросок 1">
+    <input type="number" id="dice2" min="1" max="6" placeholder="Бросок 2">
+    <input type="number" id="dice3" min="1" max="6" placeholder="Бросок 3">
+  </div>
+  <div>
+    <strong>Seed VIP:</strong><br>
+    <input type="number" id="dice4" min="1" max="6" placeholder="Бросок 4">
+    <input type="number" id="dice5" min="1" max="6" placeholder="Бросок 5">
+    <input type="number" id="dice6" min="1" max="6" placeholder="Бросок 6">
+  </div>
+
+  <h2>📏 Укажи диапазон</h2>
+  <input type="number" id="min" placeholder="Минимум">
+  <input type="number" id="max" placeholder="Максимум">
+
+  <br><br>
+  <button onclick="generate()">Генерировать числа</button>
+
+  <div id="results">
+    <h3>📋 Результаты:</h3>
+    <div id="resultList"></div>
+  </div>
+
+  <div id="announcementSection">
+    <h2>🧑‍🤝‍🧑 Введи имена</h2>
+    <input type="text" id="nameT" placeholder="Имя для {T}">
+    <input type="text" id="nameV" placeholder="Имя для {V}">
+
+    <h2>📝 Шаблон сообщения</h2>
+    <textarea id="messageTemplate" rows="3">Поздравляем {T} который выиграл поезд и {V} который будет машинистом</textarea>
+
+    <br>
+    <button onclick="createAnnouncement()">Создать объявление</button>
+
+    <div class="copy-section">
+      <label for="finalMessage">📨 Итоговое сообщение:</label><br>
+      <textarea id="finalMessage" rows="3" readonly></textarea>
+    </div>
+  </div>
+
+  <script>
+    let seedValue1 = null;
+    let seedValue2 = null;
+
+    function generate() {
+      const resultList = document.getElementById("resultList");
+      resultList.innerHTML = "";
+
+      const seed1 = [], seed2 = [];
+      for (let i = 1; i <= 3; i++) {
+        const val = parseInt(document.getElementById(`dice${i}`).value);
+        if (isNaN(val) || val < 1 || val > 6) {
+          resultList.innerHTML = `<div class="result-item">❌ Машинист: Все броски должны быть от 1 до 6.</div>`;
+          return;
+        }
+        seed1.push(val);
+      }
+      for (let i = 4; i <= 6; i++) {
+        const val = parseInt(document.getElementById(`dice${i}`).value);
+        if (isNaN(val) || val < 1 || val > 6) {
+          resultList.innerHTML = `<div class="result-item">❌ VIP: Все броски должны быть от 1 до 6.</div>`;
+          return;
+        }
+        seed2.push(val);
+      }
+
+      const min = parseInt(document.getElementById("min").value);
+      const max = parseInt(document.getElementById("max").value);
+      if (isNaN(min) || isNaN(max) || min >= max) {
+        resultList.innerHTML = `<div class="result-item">❌ Укажите корректный диапазон.</div>`;
+        return;
+      }
+
+      function seededRandom(seed) {
+        let x = Math.sin(seed) * 10000;
+        return x - Math.floor(x);
+      }
+
+      const range = max - min + 1;
+      seedValue1 = parseInt(seed1.join(""));
+      seedValue2 = parseInt(seed2.join(""));
+
+      const random1 = Math.floor(seededRandom(seedValue1) * range) + min;
+      const random2 = Math.floor(seededRandom(seedValue2) * range) + min;
+
+      resultList.innerHTML += `<div class="result-item">🚂 <strong>Машинист</strong> (seed ${seedValue1}): <strong>${random1}</strong></div>`;
+      resultList.innerHTML += `<div class="result-item">🎩 <strong>VIP</strong> (seed ${seedValue2}): <strong>${random2}</strong></div>`;
+
+      document.getElementById("announcementSection").style.display = "block";
+    }
+
+    function createAnnouncement() {
+      const nameT = document.getElementById("nameT").value || "Машинист";
+      const nameV = document.getElementById("nameV").value || "VIP";
+      const template = document.getElementById("messageTemplate").value;
+      const finalMessageInput = document.getElementById("finalMessage");
+
+      const finalText = template.replace("{T}", nameT).replace("{V}", nameV);
+      finalMessageInput.value = finalText;
+
+      finalMessageInput.select();
+      finalMessageInput.setSelectionRange(0, 99999);
+      document.execCommand("copy");
+      alert("📋 Объявление скопировано в буфер обмена!");
+    }
+  </script>
+</body>
+</html>
